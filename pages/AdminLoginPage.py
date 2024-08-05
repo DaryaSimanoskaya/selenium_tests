@@ -1,3 +1,5 @@
+import time
+
 from selenium.webdriver.common.by import By
 
 from pages.BasePage import BasePage
@@ -37,3 +39,14 @@ class AdminLoginPage(BasePage):
 
     def logout(self):
         self.find_element(AdminLoginPageLocators.LOGOUT).click()
+
+    def get_admin_token_and_cookies(self, url):
+        self.driver.get(f"{url}/administration/index.php?route=common/login")
+        self.driver.find_element(By.ID, "input-username").send_keys("admin")
+        self.driver.find_element(By.ID, "input-password").send_keys("admin")
+        self.driver.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
+        current_url = self.driver.current_url
+        token = current_url.split("user_token=")[-1]
+        cookies = self.driver.get_cookies()
+        session_cookies = {cookie['name']: cookie['value'] for cookie in cookies}
+        return token, session_cookies

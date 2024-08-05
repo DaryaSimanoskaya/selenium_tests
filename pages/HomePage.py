@@ -25,7 +25,7 @@ class HomePage(BasePage):
         super().__init__(driver)
 
     def add_random_product_to_cart(self):
-        element = self.find_elements_until_clickable(HomePageLocators.BUTTON_ADD_TO_CART)[0]
+        element = self.find_elements(HomePageLocators.BUTTON_ADD_TO_CART)[0]
         self.click_element_with_js(element)
 
     def go_to_shopping_cart(self):

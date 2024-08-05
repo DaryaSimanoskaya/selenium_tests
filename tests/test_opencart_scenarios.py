@@ -1,6 +1,12 @@
+from datetime import datetime
+
+from selenium.webdriver.common.by import By
+
 from pages.AdminLoginPage import AdminLoginPage, AdminLoginPageLocators
+from pages.AdminPage import AdminPage, AdminPageLocators
 from pages.CartPage import CartPageLocators, CartPage
 from pages.HomePage import HomePage, HomePageLocators
+from pages.RegistrationPage import RegistrationPage, RegistrationPageLocators
 
 
 class TestOpencartScenarios:
@@ -56,6 +62,7 @@ class TestOpencartScenarios:
     def test_change_currency_to_pound_sterling_on_catalog(self, browser, url):
         browser.get(f"{url}/en-gb/catalog/desktops")
         page = HomePage(browser)
+
         prev_price_new = page.find_element(HomePageLocators.PRICE_NEW).text
         prev_price_old = page.find_element(HomePageLocators.PRICE_OLD).text
         prev_price_tax = page.find_element(HomePageLocators.PRICE_TAX).text
@@ -66,3 +73,42 @@ class TestOpencartScenarios:
         assert prev_price_new != cur_price_new
         assert prev_price_old != cur_price_old
         assert prev_price_tax != cur_price_tax
+
+    def test_add_new_product(self, browser, url, administrator_login_token, delete_product):
+        rand = f'{datetime.now():%Y%m%d-%H%M%S%z}'
+        product_name = f"Test product name {rand}"
+        meta_tag = f"Test meta tag {rand}"
+        model = f"Test model {rand}"
+        keyword = f"test_keyword_{rand}"
+        browser.get(f"{url}/administration/index.php?route=catalog/product&user_token={administrator_login_token}")
+        admin_page = AdminPage(browser)
+
+        admin_page.add_new_product(name=product_name, meta_tag=meta_tag, model=model, keyword=keyword)
+        admin_page.go_to_last_product()
+        created_product_id = admin_page.wait_element_with_retry(AdminPageLocators.CHECKBOX).get_attribute('value')
+        delete_product(created_product_id)
+        assert (admin_page.wait_element_with_retry(locator=(By.XPATH,
+                                                            f"//form[@id='form-product']//tbody//tr[last()]/td[3]"))
+        .text.split("\n")[0]) == product_name
+        assert (admin_page.wait_for_element(locator=(By.XPATH, f"//form[@id='form-product']//tbody//tr[last()]/td[4]"))
+                .text) == model
+
+    def test_delete_product_from_admin(self, browser, url, administrator_login_token):
+        browser.get(f"{url}/administration/index.php?route=catalog/product&user_token={administrator_login_token}")
+        admin_page = AdminPage(browser)
+
+        admin_page.add_new_product()
+        browser.get(f"{url}/administration/index.php?route=catalog/product&user_token={administrator_login_token}")
+        admin_page.go_to_last_product()
+        created_product_id = admin_page.wait_element_with_retry(AdminPageLocators.CHECKBOX).get_attribute('value')
+
+        admin_page.delete_product(value=created_product_id)
+        assert admin_page.find_element(AdminPageLocators.ALERT_DELETE_PRODUCT_SUCCESS)
+        checkbox = (By.XPATH, f"//input[@value='{created_product_id}']")
+        assert admin_page.wait_until_element_is_not_visible(checkbox)
+
+    def test_register_new_account(self, browser, url):
+        browser.get(url)
+        registration_page = RegistrationPage(browser)
+        registration_page.register_new_user()
+        assert registration_page.find_element(RegistrationPageLocators.END_REGISTRATION)

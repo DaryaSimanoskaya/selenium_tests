@@ -1,6 +1,7 @@
 import time
 from datetime import datetime
 
+import allure
 from selenium.webdriver.common.by import By
 
 from pages.BasePage import BasePage
@@ -28,6 +29,7 @@ class AdminPage(BasePage):
     def __init__(self, driver):
         super().__init__(driver)
 
+    @allure.step("Add new product with name: {name}, meta tag: {meta_tag}, model: {model}, keyword: {keyword}")
     def add_new_product(self, name: str = f"{rand}", meta_tag: str = f"{rand}", model: str = f"{rand}",
                         keyword: str = f"{rand}"):
         self.find_element(AdminPageLocators.ADD_NEW_PRODUCT).click()
@@ -39,11 +41,13 @@ class AdminPage(BasePage):
         self.find_element(AdminPageLocators.KEYWORD).send_keys(keyword)
         self.find_element(AdminPageLocators.SAVE_PRODUCT_BUTTON).click()
 
+    @allure.step("Go to last product")
     def go_to_last_product(self):
         last_product = self.find_element(AdminPageLocators.ARROW_TO_LAST_PRODUCT)
         self.driver.execute_script("arguments[0].scrollIntoView();", last_product)
         self.wait_for_element(AdminPageLocators.ARROW_TO_LAST_PRODUCT).click()
 
+    @allure.step("Delete product with value: {value}")
     def delete_product(self, value):
         checkbox = (By.XPATH, f"//input[@value='{value}']")
         self.find_element(checkbox).click()

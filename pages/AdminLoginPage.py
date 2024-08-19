@@ -1,5 +1,6 @@
 import time
 
+import allure
 from selenium.webdriver.common.by import By
 
 from pages.BasePage import BasePage
@@ -28,18 +29,22 @@ class AdminLoginPage(BasePage):
     def __init__(self, driver):
         super().__init__(driver)
 
+    @allure.step("Set login username")
     def set_login(self, username):
         self.find_element(AdminLoginPageLocators.USERNAME).send_keys(username)
 
     def set_password(self, password):
         self.find_element(AdminLoginPageLocators.PASSWORD).send_keys(password)
 
+    @allure.step("Click login button")
     def login(self):
         self.find_element(AdminLoginPageLocators.LOGIN).click()
 
+    @allure.step("Click logout button")
     def logout(self):
         self.find_element(AdminLoginPageLocators.LOGOUT).click()
 
+    @allure.step("Get admin token and cookies from URL: {url}")
     def get_admin_token_and_cookies(self, url):
         self.driver.get(f"{url}/administration/index.php?route=common/login")
         self.driver.find_element(By.ID, "input-username").send_keys("admin")

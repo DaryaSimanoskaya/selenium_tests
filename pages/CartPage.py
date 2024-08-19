@@ -1,3 +1,4 @@
+import allure
 from selenium.webdriver.common.by import By
 
 from pages.BasePage import BasePage
@@ -14,5 +15,6 @@ class CartPage(BasePage):
     def __init__(self, driver):
         super().__init__(driver)
 
+    @allure.step("Remove the first item from the cart")
     def remove_first_item_from_cart(self):
         self.find_elements(CartPageLocators.BUTTON_REMOVE)[0].click()

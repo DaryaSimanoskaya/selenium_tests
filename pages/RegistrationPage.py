@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import allure
 from selenium.webdriver.common.by import By
 
 from pages.BasePage import BasePage
@@ -24,6 +25,7 @@ class RegistrationPage(BasePage):
     def __init__(self, driver):
         super().__init__(driver)
 
+    @allure.step("Register a new user with details: Firstname: {firstname}, Lastname: {lastname}, Email: {email}")
     def register_new_user(self, firstname: str = f"Firstname-{rand}",
                           lastname: str = f"Lastname-{rand}",
                           email: str = f"test-email{rand}@mail.ru",

@@ -15,11 +15,30 @@ from pages.AdminLoginPage import AdminLoginPage
 
 def configure_logging():
     logging.basicConfig(
-        filename='test_logs.log',
-        level=logging.DEBUG,
+        level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
+
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    console_handler.setFormatter(formatter)
+
+    logging.getLogger().addHandler(console_handler)
+
     logging.info('Logging setup complete')
+
+configure_logging()
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    rep = outcome.get_result()
+    if rep.outcome != 'passed':
+        item.status = 'failed'
+    else:
+        item.status = 'passed'
+
 
 
 def pytest_addoption(parser):
@@ -33,7 +52,7 @@ def url(request):
     return request.config.getoption("--url")
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def browser(request):
     browser_name = request.config.getoption("--browser")
     headless = request.config.getoption("--headless")
@@ -57,7 +76,7 @@ def browser(request):
         driver = webdriver.Chrome(options=options, service=service)
     driver.set_window_size("1920", "1080")
     yield driver
-    if request.node.rep_call.failed:
+    if request.node.status == "failed":
         allure.attach(
             name="failure_screenshot",
             body=driver.get_screenshot_as_png(),
@@ -68,7 +87,6 @@ def browser(request):
             body=driver.page_source,
             attachment_type=allure.attachment_type.HTML
         )
-        logging.error("Test failed, screenshot and page source attached to report.")
     driver.quit()
 
 

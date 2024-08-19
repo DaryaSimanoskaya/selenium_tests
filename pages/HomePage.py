@@ -1,5 +1,6 @@
 import time
 
+import allure
 from selenium.webdriver.common.by import By
 
 from pages.BasePage import BasePage
@@ -24,20 +25,24 @@ class HomePage(BasePage):
     def __init__(self, driver):
         super().__init__(driver)
 
+    @allure.step("Add a random product to the cart")
     def add_random_product_to_cart(self):
         element = self.find_elements(HomePageLocators.BUTTON_ADD_TO_CART)[0]
         self.click_element_with_js(element)
 
+    @allure.step("Go to the shopping cart")
     def go_to_shopping_cart(self):
         shopping_cart = self.find_element(HomePageLocators.SHOPPING_CART)
         self.driver.execute_script("arguments[0].scrollIntoView(true);", shopping_cart)
         self.wait_until_element_is_not_visible(HomePageLocators.ALERT_YOU_ADDED_PRODUCT)
         shopping_cart.click()
 
+    @allure.step("Switch currency to Euro")
     def switch_currency_to_euro(self):
         self.find_element(HomePageLocators.CURRENCY).click()
         self.find_element(HomePageLocators.EUR).click()
 
+    @allure.step("Switch currency to Pound Sterling")
     def switch_currency_to_pound_sterling(self):
         self.find_element(HomePageLocators.CURRENCY).click()
         self.find_element(HomePageLocators.POUND_STERLING).click()

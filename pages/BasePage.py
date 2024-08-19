@@ -1,3 +1,4 @@
+import logging
 import time
 
 from selenium.common import StaleElementReferenceException
@@ -7,12 +8,18 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 
 class BasePage:
+    logger = logging.getLogger(__name__)
+
     def __init__(self, driver):
         self.driver = driver
+        self.logger.info(f"Initialized {self.__class__.__name__} with driver {driver}")
 
     def find_element(self, locator, time_count=10):
-        return WebDriverWait(self.driver, time_count).until(EC.presence_of_element_located(locator),
-                                                            message=f"Can't find element by locator {locator}")
+        self.logger.info(f"Finding element by locator: {locator}")
+        element = WebDriverWait(self.driver, time_count).until(EC.presence_of_element_located(locator),
+                                                               message=f"Can't find element by locator {locator}")
+        self.logger.info(f"Found element {locator}")
+        return element
 
     def find_element_until_clickable(self, locator, time_count=10):
         return WebDriverWait(self.driver, time_count).until(EC.element_to_be_clickable(locator),

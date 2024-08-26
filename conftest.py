@@ -1,6 +1,8 @@
+import logging
 import os
 import time
 
+import allure
 import pytest
 import requests
 from selenium import webdriver
@@ -9,6 +11,34 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 
 from pages.AdminLoginPage import AdminLoginPage
+
+
+def configure_logging():
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    console_handler.setFormatter(formatter)
+
+    logging.getLogger().addHandler(console_handler)
+
+    logging.info('Logging setup complete')
+
+configure_logging()
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    rep = outcome.get_result()
+    if rep.outcome != 'passed':
+        item.status = 'failed'
+    else:
+        item.status = 'passed'
+
 
 
 def pytest_addoption(parser):
@@ -22,7 +52,7 @@ def url(request):
     return request.config.getoption("--url")
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def browser(request):
     browser_name = request.config.getoption("--browser")
     headless = request.config.getoption("--headless")
@@ -46,6 +76,17 @@ def browser(request):
         driver = webdriver.Chrome(options=options, service=service)
     driver.set_window_size("1920", "1080")
     yield driver
+    if request.node.status == "failed":
+        allure.attach(
+            name="failure_screenshot",
+            body=driver.get_screenshot_as_png(),
+            attachment_type=allure.attachment_type.PNG
+        )
+        allure.attach(
+            name="page_source",
+            body=driver.page_source,
+            attachment_type=allure.attachment_type.HTML
+        )
     driver.quit()
 
 

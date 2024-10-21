@@ -44,11 +44,13 @@ def pytest_runtest_makereport(item, call):
 def pytest_addoption(parser):
     parser.addoption("--browser", default="chrome", choices=["yandex", "firefox", "chrome"])
     parser.addoption("--headless", action="store_true")
+    parser.addoption("--browser-version", default="latest", help="Browser version")
     parser.addoption("--url", default="http://192.168.0.108:8081")
     parser.addoption("--remote", action="store_true", help="Run tests on Selenoid")
     parser.addoption("--vnc", action="store_true", help="Enable VNC for Selenoid")
     parser.addoption("--mobile", action="store_true", help="Enable mobile view")
     parser.addoption("--executor", action="store", default="127.0.0.1")
+    parser.addoption("--threads", default="1", help="Number of threads")
 
 
 @pytest.fixture(scope="session")
@@ -59,21 +61,26 @@ def url(request):
 @pytest.fixture
 def browser(request):
     browser_name = request.config.getoption("--browser")
+    browser_version = request.config.getoption("--browser-version")  # Получаем версию браузера
     headless = request.config.getoption("--headless")
     remote = request.config.getoption("--remote")
     mobile = request.config.getoption("--mobile")
     vnc = request.config.getoption("--vnc")
     executor = request.config.getoption("--executor")
+    threads = request.config.getoption("--threads")
+
     driver = None
-    logging.info(f"Starting browser: {browser_name}, headless: {headless}, remote: {remote}, mobile: {mobile}, vnc: {vnc}")
+    logging.info(f"Starting browser: {browser_name}, version: {browser_version}, headless: {headless}, remote: {remote}, mobile: {mobile}, vnc: {vnc}, threads: {threads}")
     if remote:
         selenoid_url = f"http://{executor}:4444/wd/hub"
         options = None
 
         if browser_name == "chrome":
             options = ChromeOptions()
+            options.set_capability("browserVersion", browser_version)
         elif browser_name == "firefox":
             options = FirefoxOptions()
+            options.set_capability("browserVersion", browser_version)
 
 
         options.set_capability("browserName", browser_name)

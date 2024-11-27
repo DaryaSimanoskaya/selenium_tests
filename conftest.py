@@ -44,12 +44,12 @@ def pytest_runtest_makereport(item, call):
 def pytest_addoption(parser):
     parser.addoption("--browser", default="chrome", choices=["yandex", "firefox", "chrome"])
     parser.addoption("--headless", action="store_true")
-    parser.addoption("--browser-version", default="latest", help="Browser version")
-    parser.addoption("--url", default="http://192.168.0.108:8081")
+    parser.addoption("--browser-version", default="128.0", help="Browser version")
+    parser.addoption("--url", default="http://localhost:8080")
     parser.addoption("--remote", action="store_true", help="Run tests on Selenoid")
     parser.addoption("--vnc", action="store_true", help="Enable VNC for Selenoid")
     parser.addoption("--mobile", action="store_true", help="Enable mobile view")
-    parser.addoption("--executor", action="store", default="127.0.0.1")
+    parser.addoption("--executor", action="store", default="localhost")
     parser.addoption("--threads", default="1", help="Number of threads")
 
 

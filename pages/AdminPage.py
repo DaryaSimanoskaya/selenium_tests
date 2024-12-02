@@ -43,8 +43,9 @@ class AdminPage(BasePage):
 
     @allure.step("Go to last product")
     def go_to_last_product(self):
-        last_product = self.find_element(AdminPageLocators.ARROW_TO_LAST_PRODUCT)
+        last_product = self.wait_for_element(AdminPageLocators.ARROW_TO_LAST_PRODUCT)
         self.driver.execute_script("arguments[0].scrollIntoView();", last_product)
+        time.sleep(1)
         self.wait_for_element(AdminPageLocators.ARROW_TO_LAST_PRODUCT).click()
 
     @allure.step("Delete product with value: {value}")

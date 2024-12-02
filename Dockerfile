@@ -27,7 +27,7 @@ RUN curl -o allure-2.17.3.tgz -L https://github.com/allure-framework/allure2/rel
     && ln -s /opt/allure-2.17.3/bin/allure /usr/local/bin/allure
 
 # Установка переменных окружения
-ENV EXECUTOR="172.31.144.1" \
+ENV EXECUTOR="host.docker.internal" \
     URL="http://localhost:8080" \
     BROWSER="chrome" \
     BROWSER_VERSION="128.0" \

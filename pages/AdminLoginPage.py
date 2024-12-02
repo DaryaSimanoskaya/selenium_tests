@@ -31,10 +31,10 @@ class AdminLoginPage(BasePage):
 
     @allure.step("Set login username")
     def set_login(self, username):
-        self.find_element(AdminLoginPageLocators.USERNAME).send_keys(username)
+        self.wait_for_element(AdminLoginPageLocators.USERNAME).send_keys(username)
 
     def set_password(self, password):
-        self.find_element(AdminLoginPageLocators.PASSWORD).send_keys(password)
+        self.wait_for_element(AdminLoginPageLocators.PASSWORD).send_keys(password)
 
     @allure.step("Click login button")
     def login(self):
@@ -44,9 +44,9 @@ class AdminLoginPage(BasePage):
     def logout(self):
         self.find_element(AdminLoginPageLocators.LOGOUT).click()
 
-    @allure.step("Get admin token and cookies from URL: {url}")
-    def get_admin_token_and_cookies(self, url):
-        self.driver.get(f"{url}/administration/index.php?route=common/login")
+    @allure.step("Get admin token and cookies from URL: {admin_url}")
+    def get_admin_token_and_cookies(self, admin_url):
+        self.driver.get(f"{admin_url}/index.php?route=common/login")
         self.driver.find_element(By.ID, "input-username").send_keys("admin")
         self.driver.find_element(By.ID, "input-password").send_keys("admin")
         self.driver.find_element(By.CSS_SELECTOR, "button[type='submit']").click()

@@ -13,17 +13,19 @@ from pages.RegistrationPage import RegistrationPage, RegistrationPageLocators
 class TestOpencartScenarios:
 
     @allure.description("Test admin login and logout functionality")
-    def test_admin_login_logout(self, browser, url):
-        with allure.step("Open admin login page"):
-            browser.get(f"{url}/administration/")
-
+    def test_admin_login_logout(self, browser, admin_url):
+        browser.get(admin_url)
         page = AdminLoginPage(browser)
 
         with allure.step("Enter admin credentials"):
             page.set_login("user")
             page.set_password("bitnami")
             page.login()
-
+        if not page.element_is_exists(AdminLoginPageLocators.EXTENSIONS):
+            with allure.step("Enter admin credentials try number two"):
+                page.set_login("user")
+                page.set_password("bitnami")
+                page.login()
         with allure.step("Verify admin panel elements are visible"):
             assert page.find_element(AdminLoginPageLocators.EXTENSIONS)
             assert page.find_element(AdminLoginPageLocators.CATALOG)
@@ -50,7 +52,7 @@ class TestOpencartScenarios:
             browser.get(url)
 
         home_page = HomePage(browser)
-
+        home_page.driver.refresh()
         with allure.step("Add a random product to the cart"):
             home_page.add_random_product_to_cart()
             assert home_page.find_element(HomePageLocators.ALERT_YOU_ADDED_PRODUCT)
@@ -114,7 +116,7 @@ class TestOpencartScenarios:
             assert prev_price_tax != cur_price_tax
 
     @allure.description("Test adding a new product in the admin panel")
-    def test_add_new_product(self, browser, url, administrator_login_token, delete_product):
+    def test_add_new_product(self, browser, admin_url, administrator_login_token, delete_product):
         rand = f'{datetime.now():%Y%m%d-%H%M%S%z}'
         product_name = f"Test product name {rand}"
         meta_tag = f"Test meta tag {rand}"
@@ -122,13 +124,13 @@ class TestOpencartScenarios:
         keyword = f"test_keyword_{rand}"
 
         with allure.step("Open admin product page"):
-            browser.get(f"{url}/administration/index.php?route=catalog/product&user_token={administrator_login_token}")
+            browser.get(f"{admin_url}/index.php?route=catalog/product&user_token={administrator_login_token}")
 
         admin_page = AdminPage(browser)
 
         with allure.step("Add a new product"):
             admin_page.add_new_product(name=product_name, meta_tag=meta_tag, model=model, keyword=keyword)
-            browser.get(f"{url}/administration/index.php?route=catalog/product&user_token={administrator_login_token}")
+            browser.get(f"{admin_url}/index.php?route=catalog/product&user_token={administrator_login_token}")
             admin_page.go_to_last_product()
 
         with allure.step("Verify the product was added"):
@@ -142,9 +144,9 @@ class TestOpencartScenarios:
                     .text) == model
 
     @allure.description("Test deleting a product from the admin panel")
-    def test_delete_product_from_admin(self, browser, url, administrator_login_token):
+    def test_delete_product_from_admin(self, browser, admin_url, administrator_login_token):
         with allure.step("Open admin product page"):
-            browser.get(f"{url}/administration/index.php?route=catalog/product&user_token={administrator_login_token}")
+            browser.get(f"{admin_url}/index.php?route=catalog/product&user_token={administrator_login_token}")
 
         admin_page = AdminPage(browser)
 
@@ -152,7 +154,7 @@ class TestOpencartScenarios:
             admin_page.add_new_product()
 
         with allure.step("Open admin product page again"):
-            browser.get(f"{url}/administration/index.php?route=catalog/product&user_token={administrator_login_token}")
+            browser.get(f"{admin_url}/index.php?route=catalog/product&user_token={administrator_login_token}")
 
         with allure.step("Delete the last added product"):
             admin_page.go_to_last_product()

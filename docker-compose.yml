@@ -50,13 +50,29 @@ services:
   test:
     build:
       context: .
-    entrypoint: [ "sh", "-c", "./wait-for-it.sh opencart 8080  pytest --url=http://opencart:8080 --executor=172.31.144.1 --browser=chrome --remote --alluredir=./allure-results" ]
+      args:
+        BROWSER: ${BROWSER}
+        MY_URL: ${MY_URL}
+        EXECUTOR: ${EXECUTOR}
+        BROWSER_VERSION: ${BROWSER_VERSION}
+        THREADS: ${THREADS}
+    entrypoint: >
+      sh -c "./wait-for-it.sh opencart 8080 pytest
+      --url=${MY_URL}
+      --browser=${BROWSER}
+      --executor=${EXECUTOR}
+      --browser-version=${BROWSER_VERSION}
+      --threads=${THREADS}
+      --vnc
+      --remote --alluredir=/allure-results && ls -la /allure-results"
     depends_on:
       - opencart
     networks:
       - selenoid
     environment:
       - OPENCART_HOST=opencart:8080
+    volumes:
+      - allure-results:/allure-results
 
 volumes:
   mariadb_data:
@@ -64,6 +80,8 @@ volumes:
   opencart_data:
     driver: local
   opencart_storage_data:
+    driver: local
+  allure-results:
     driver: local
 
 networks:

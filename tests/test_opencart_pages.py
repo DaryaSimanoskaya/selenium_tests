@@ -87,9 +87,9 @@ class TestOpenCartPages:
 
     @allure.description("Verify admin login page elements are present")
     @allure.title("Test Admin Login Page Elements")
-    def test_admin_login_page_elements(self, browser, url):
+    def test_admin_login_page_elements(self, browser, admin_url):
         with allure.step("Open admin login page"):
-            browser.get(f'{url}/administration/')
+            browser.get(admin_url)
 
         page = AdminLoginPage(browser)
 

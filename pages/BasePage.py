@@ -74,6 +74,19 @@ class BasePage:
                 else:
                     time.sleep(1)
 
+    def element_is_exists(self, locator, time_count=2):
+        self.logger.info(f"Checking if element exists: {locator}")
+        try:
+            WebDriverWait(self.driver, time_count).until(
+                EC.presence_of_element_located(locator),
+                message=f"Element not found: {locator}"
+            )
+            self.logger.info(f"Element exists: {locator}")
+            return True
+        except Exception as e:
+            self.logger.warning(f"Element does not exist: {locator}. Exception: {e}")
+            return False
+
     def accept_alert(self):
         self.logger.info("Waiting for and accepting alert")
         alert = WebDriverWait(self.driver, 10).until(EC.alert_is_present())

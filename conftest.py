@@ -10,7 +10,7 @@ from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 
-from pages.AdminLoginPage import AdminLoginPage
+from pages.AdminLoginPage import AdminLoginPage, AdminLoginPageLocators
 
 
 def configure_logging():
@@ -45,7 +45,8 @@ def pytest_addoption(parser):
     parser.addoption("--browser", default="chrome", choices=["yandex", "firefox", "chrome"])
     parser.addoption("--headless", action="store_true")
     parser.addoption("--browser-version", default="128.0", help="Browser version")
-    parser.addoption("--url", default="http://localhost:8080")
+    parser.addoption("--url", default="http://192.168.0.108:8080/index.php")
+    parser.addoption("--admin-url", default="http://192.168.0.108:8080/administration/")
     parser.addoption("--remote", action="store_true", help="Run tests on Selenoid")
     parser.addoption("--vnc", action="store_true", help="Enable VNC for Selenoid")
     parser.addoption("--mobile", action="store_true", help="Enable mobile view")
@@ -57,6 +58,9 @@ def pytest_addoption(parser):
 def url(request):
     return request.config.getoption("--url")
 
+@pytest.fixture(scope="session")
+def admin_url(request):
+    return request.config.getoption("--admin-url")
 
 @pytest.fixture
 def browser(request):
@@ -127,22 +131,28 @@ def browser(request):
 
 
 @pytest.fixture(scope="function")
-def administrator_login_token(browser, url):
-    browser.get(f"{url}/administration/")
+def administrator_login_token(browser, admin_url):
+    browser.get(admin_url)
     admin_page = AdminLoginPage(browser)
     admin_page.set_login("user")
     admin_page.set_password("bitnami")
     admin_page.login()
     time.sleep(1)
+    if not admin_page.element_is_exists(AdminLoginPageLocators.EXTENSIONS):
+        with allure.step("Enter admin credentials try number two"):
+            admin_page.set_login("user")
+            admin_page.set_password("bitnami")
+            admin_page.login()
+
     current_url = browser.current_url
     token = current_url.split('token=')[1]
     yield token
 
 
 @pytest.fixture
-def delete_product(browser, url):
+def delete_product(browser, admin_url):
     product_ids = []
-    token, cookies = AdminLoginPage(browser).get_admin_token_and_cookies(url)
+    token, cookies = AdminLoginPage(browser).get_admin_token_and_cookies(admin_url)
 
     def _delete_product(created_product_id):
         product_ids.append(created_product_id)
@@ -153,7 +163,7 @@ def delete_product(browser, url):
             "selected[]": int(product_id)
         }
         response = requests.post(
-            f"{url}/administration/index.php?route=catalog/product.delete&user_token={token}",
+            f"{admin_url}/index.php?route=catalog/product.delete&user_token={token}",
             data=data,
             cookies=cookies,
             headers={'Content-Type': 'application/x-www-form-urlencoded'})
